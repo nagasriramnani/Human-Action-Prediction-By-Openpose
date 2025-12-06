@@ -70,30 +70,49 @@ def json_to_numpy(json_dir, num_frames, expected_joints=25):
         print(f"Warning: No JSONs found in {json_dir}. Generating dummy data.")
         return np.random.rand(num_frames, expected_joints, 2).astype(np.float32)
 
-    data = []
-    for jf in json_files:
-        with open(jf, 'r') as f:
-            content = json.load(f)
-        
-        # Extract keypoints
-        # OpenPose BODY_25 has 25 points, each with (x, y, confidence)
-        if content['people']:
-            # Take the first person
-            keypoints = content['people'][0]['pose_keypoints_2d']
-            # Reshape to (25, 3)
-            kp_reshaped = np.array(keypoints).reshape(-1, 3)
-            # Take only (x, y)
-            kp_xy = kp_reshaped[:, :2]
-        else:
-            # No person detected, use zeros
-            kp_xy = np.zeros((expected_joints, 2))
-        
-        data.append(kp_xy)
+    # Initialize with zeros (T, J, 2)
+    skeleton_seq = np.zeros((num_frames, expected_joints, 2), dtype=np.float32)
     
-    # Handle missing frames or mismatch length
-    # (Simple logic: if OpenPose dropped frames, we might need to align with video duration)
-    # Here we just stack what we have.
-    skeleton_seq = np.array(data) # (T, J, 2)
+    for jf in json_files:
+        # Parse frame index from filename
+        # Format: {video_name}_{frame_number}_keypoints.json
+        # We look for the last sequence of digits before "_keypoints"
+        filename = os.path.basename(jf)
+        try:
+            # Split by '_' and find the part that is the frame number (usually 2nd to last)
+            # Example: video_000000000000_keypoints.json -> parts[-2] is "000000000000"
+            parts = filename.replace("_keypoints.json", "").split('_')
+            frame_idx = int(parts[-1])
+            
+            if frame_idx >= num_frames:
+                continue
+                
+            with open(jf, 'r') as f:
+                content = json.load(f)
+            
+            # Extract keypoints
+            if content['people']:
+                # Take the first person
+                keypoints = content['people'][0]['pose_keypoints_2d']
+                kp_reshaped = np.array(keypoints).reshape(-1, 3)
+                
+                # Check confidence
+                # Sum of confidence scores (3rd column)
+                confidence_sum = np.sum(kp_reshaped[:, 2])
+                
+                # Threshold: If total confidence is too low, treat as noise/empty
+                # 25 joints * 0.1 avg confidence = 2.5
+                if confidence_sum > 5.0:
+                    kp_xy = kp_reshaped[:, :2]
+                    skeleton_seq[frame_idx] = kp_xy
+                else:
+                    # Low confidence, ignore (leave as zeros)
+                    pass
+            # else: no person, leave as zeros
+        except Exception as e:
+            print(f"Error parsing {filename}: {e}")
+            continue
+            
     return skeleton_seq
 
 def normalize_skeleton(skeleton_seq, width=160, height=120):

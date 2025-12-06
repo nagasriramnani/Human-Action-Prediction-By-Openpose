@@ -9,7 +9,8 @@ from video_to_keypoints import run_openpose, json_to_numpy, normalize_skeleton
 
 # Configuration
 MODEL_PATH = "best_model.pth" # Path to trained model
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cpu") # Force CPU for debugging crash
 CLASSES = ["boxing", "handclapping", "handwaving", "jogging", "running", "walking"]
 
 def interpolate(data):
@@ -47,11 +48,8 @@ def render_video(video_path, keypoints, output_path):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
     # MP4 codec (avc1 is widely supported, mp4v is backup)
-    try:
-        fourcc = cv2.VideoWriter_fourcc(*'avc1')
-    except:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        
+    # WebM codec (vp80) is supported by browsers and doesn't require OpenH264
+    fourcc = cv2.VideoWriter_fourcc(*'vp80')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     
     # BODY_25 Pairs
@@ -143,7 +141,7 @@ class ActionRecognizer:
             skeleton_seq = interpolate(skeleton_seq)
             
             # RENDER VIDEO HERE (Before normalization)
-            processed_video_name = "processed_" + os.path.splitext(os.path.basename(video_path))[0] + ".mp4"
+            processed_video_name = "processed_" + os.path.splitext(os.path.basename(video_path))[0] + ".webm"
             temp_video_path = os.path.join(temp_dir, processed_video_name)
             render_video(video_path, skeleton_seq, temp_video_path)
             
@@ -164,9 +162,13 @@ class ActionRecognizer:
             input_tensor = input_tensor.unsqueeze(0).to(self.device) # Add batch dim: (1, C, T, J)
             
             # 5. Inference
-            with torch.no_grad():
-                outputs = self.model(input_tensor)
-                probs = torch.softmax(outputs, dim=1).cpu().numpy()[0]
+            try:
+                with torch.no_grad():
+                    outputs = self.model(input_tensor)
+                    probs = torch.softmax(outputs, dim=1).cpu().numpy()[0]
+            except Exception as e:
+                print(f"Error during inference: {e}")
+                raise e
             
             # Move processed video to static folder
             static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend", "static")

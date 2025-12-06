@@ -61,6 +61,31 @@ function App() {
                                 </div>
                             </div>
                         )}
+
+                        {/* Model Performance Section */}
+                        <div className="mt-8 pt-8 border-t border-gray-800">
+                            <div className="flex items-center space-x-2 mb-6">
+                                <div className="h-8 w-1 bg-green-500 rounded-full" />
+                                <h2 className="text-2xl font-semibold tracking-tight">Model Performance</h2>
+                            </div>
+                            <div className="bg-card rounded-lg border shadow-sm p-6">
+                                <h3 className="text-lg font-semibold mb-4">Confusion Matrix</h3>
+                                <div className="flex justify-center">
+                                    <img
+                                        src="http://localhost:8000/static/confusion_matrix.png"
+                                        alt="Confusion Matrix"
+                                        className="max-w-full h-auto rounded-lg border"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.parentNode.innerHTML = '<p class="text-muted-foreground">Confusion matrix not available yet.</p>';
+                                        }}
+                                    />
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-4 text-center">
+                                    Visualizing classification performance on the validation dataset.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -27,14 +27,24 @@ ENV/
 .env
 
 # Project specific
+# Project specific
 Data/
 Skeletons/
 openpose/
 *.pth
+!best_model.pth
 *.avi
 *.mp4
+*.json
+*.npy
+*.odt
 temp_inference/
 backend/__pycache__/
 frontend/node_modules/
 frontend/dist/
 .DS_Store
+backend/static/confusion_matrix.png
+accuracy_plot_advanced.png
+Architecture/
+Outputs/
+Backend_terminal_outputs/
