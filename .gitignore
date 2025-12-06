@@ -29,6 +29,8 @@ Backend_terminal_outputs/
 *.mp4
 *.mov
 *.json
+!package.json
+!package-lock.json
 *.npy
 *.odt
 
