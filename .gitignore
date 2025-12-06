@@ -31,6 +31,7 @@ Backend_terminal_outputs/
 *.json
 !package.json
 !package-lock.json
+!vercel.json
 *.npy
 *.odt
 
@@ -40,6 +41,7 @@ Thumbs.db
 
 # Generated artifacts
 backend/static/confusion_matrix.png
+backend/static/*.webm
 accuracy_plot_advanced.png
 temp_inference/
 
