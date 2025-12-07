@@ -36,7 +36,7 @@ const CardContent = React.forwardRef(({ className, ...props }, ref) => (
 ));
 CardContent.displayName = "CardContent";
 
-export default function Results({ results, backendUrl }) {
+export default function Results({ results }) {
     if (!results) return null;
 
     const { classes, probabilities, top_class, top_probability } = results;
@@ -48,9 +48,6 @@ export default function Results({ results, backendUrl }) {
         cls,
         prob: probabilities[idx] * 100
     })).sort((a, b) => b.prob - a.prob);
-
-    // Ensure backendUrl doesn't have a trailing slash
-    const baseUrl = backendUrl ? backendUrl.replace(/\/$/, '') : 'http://localhost:8000';
 
     return (
         <Card className="w-full border-2 shadow-lg">
@@ -67,7 +64,7 @@ export default function Results({ results, backendUrl }) {
                 {results.video_url && (
                     <div className="rounded-lg overflow-hidden border">
                         <video
-                            src={`${baseUrl}${results.video_url}`}
+                            src={`http://localhost:8000${results.video_url}`}
                             controls
                             autoPlay
                             loop

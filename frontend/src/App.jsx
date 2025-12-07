@@ -5,17 +5,14 @@ import axios from 'axios';
 
 function App() {
     const [results, setResults] = useState(null);
-    const [backendUrl, setBackendUrl] = useState('http://localhost:8000');
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const handleAnalyze = async (file) => {
         const formData = new FormData();
         formData.append('file', file);
 
         try {
-            // Use the dynamic backend URL
-            const url = backendUrl.replace(/\/$/, ''); // Remove trailing slash if present
-            const response = await axios.post(`${url}/predict`, formData, {
+            // Assuming backend is running on localhost:8000
+            const response = await axios.post('http://localhost:8000/predict', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -23,23 +20,14 @@ function App() {
             setResults(response.data);
         } catch (error) {
             console.error("Error analyzing video:", error);
-            alert(`Error connecting to backend at ${backendUrl}. \n\n1. Ensure backend is running.\n2. If using ngrok, check the URL.\n3. Check browser console for details.`);
+            alert("Error analyzing video. Ensure backend is running.");
         }
     };
 
     return (
         <div className="dark min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-black to-black p-8 font-sans antialiased text-white">
             <div className="container mx-auto max-w-7xl space-y-12">
-                <div className="text-center space-y-4 py-8 relative">
-                    {/* Settings Toggle */}
-                    <button
-                        onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                        className="absolute right-0 top-0 p-2 text-muted-foreground hover:text-white transition-colors"
-                        title="Server Settings"
-                    >
-                        ⚙️ Server Config
-                    </button>
-
+                <div className="text-center space-y-4 py-8">
                     <h1 className="text-5xl font-extrabold tracking-tight lg:text-6xl bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
                         Action Recognition AI
                     </h1>
@@ -47,23 +35,6 @@ function App() {
                         Advanced human action classification using 3D CNNs and Skeleton Extraction.
                         Upload a video to see the AI in action.
                     </p>
-
-                    {/* Backend URL Input (Collapsible) */}
-                    {isSettingsOpen && (
-                        <div className="max-w-md mx-auto mt-4 p-4 bg-card border rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
-                            <label className="block text-sm font-medium mb-2 text-left">Backend API URL</label>
-                            <input
-                                type="text"
-                                value={backendUrl}
-                                onChange={(e) => setBackendUrl(e.target.value)}
-                                placeholder="http://localhost:8000 or https://xyz.ngrok-free.app"
-                                className="w-full p-2 rounded bg-background border border-input focus:ring-2 focus:ring-primary outline-none"
-                            />
-                            <p className="text-xs text-muted-foreground mt-2 text-left">
-                                Enter your <b>ngrok URL</b> here when using Vercel (e.g., <code>https://xyz.ngrok-free.app</code>).
-                            </p>
-                        </div>
-                    )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -81,7 +52,7 @@ function App() {
                             <h2 className="text-2xl font-semibold tracking-tight">Analysis Results</h2>
                         </div>
                         {results ? (
-                            <Results results={results} backendUrl={backendUrl} />
+                            <Results results={results} />
                         ) : (
                             <div className="h-full min-h-[400px] flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50">
                                 <div className="text-center space-y-2 text-muted-foreground">
@@ -101,7 +72,7 @@ function App() {
                                 <h3 className="text-lg font-semibold mb-4">Confusion Matrix</h3>
                                 <div className="flex justify-center">
                                     <img
-                                        src={`${backendUrl.replace(/\/$/, '')}/static/confusion_matrix.png`}
+                                        src="http://localhost:8000/static/confusion_matrix.png"
                                         alt="Confusion Matrix"
                                         className="max-w-full h-auto rounded-lg border"
                                         onError={(e) => {
